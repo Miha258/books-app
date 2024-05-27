@@ -1,5 +1,10 @@
 version: '3.8'
 
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+
 services:
   mysql_db:
     image: mysql:8.0
@@ -11,6 +16,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
 
   nest_app:
     build: .
@@ -21,8 +28,8 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       JWT_LIFE: ${JWT_LIFE}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: mysql_db
+      DB_PORT: 3306
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_DATABASE: ${DB_DATABASE}
@@ -30,6 +37,8 @@ services:
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       ROOT_URL: ${ROOT_URL}
+    networks:
+      - app-network
 
 volumes:
   mysql_data:
