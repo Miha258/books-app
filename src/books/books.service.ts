@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Book } from './book.entity';
+import * as fs from 'node:fs/promises';
+import { join } from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class BooksService {
@@ -10,8 +13,19 @@ export class BooksService {
     private booksRepository: Repository<Book>,
   ) {}
 
-  async create(book: Book): Promise<Book> {
-    this.booksRepository.save(book)
+  async create(book: Book, file?: Express.Multer.File): Promise<Book> {
+    let uploadPath: string | null
+    let uploadBuff: any | null
+    
+    if (file) {
+      const mediaFile = file.originalname
+      const separatedMediaFilename = mediaFile.split('.')
+      book.coverImage = 'files/books/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
+      uploadPath = join(__dirname, '..', '..', book.coverImage)
+      uploadBuff = file.buffer
+      await fs.writeFile(uploadPath, uploadBuff)
+    }
+    
     return this.booksRepository.save(book);
   }
 
@@ -26,8 +40,25 @@ export class BooksService {
     return this.booksRepository.findOneBy({ id });
   }
 
-  async update(id: number, book: Book): Promise<Book> {
-    await this.booksRepository.update(id, book);
+  async update(id: number, updateData: Partial<Book>, file?: Express.Multer.File): Promise<Book> {
+    const book = await this.findOne(id)
+    
+    let uploadPath: string | null
+    let uploadBuff: any | null
+    
+    if (file) {
+      if (book.coverImage) {
+        await fs.unlink(join(__dirname, '..', '..', book.coverImage))
+      }
+      const mediaFile = file.originalname
+      const separatedMediaFilename = mediaFile.split('.')
+      updateData.coverImage = 'files/books/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
+      uploadPath = join(__dirname, '..', '..', updateData.coverImage)
+      uploadBuff = file.buffer
+      await fs.writeFile(uploadPath, uploadBuff)
+    }
+    
+    await this.booksRepository.update(id, updateData);
     return this.findOne(id);
   }
 

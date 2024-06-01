@@ -5,6 +5,8 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 
 @Injectable()
@@ -24,7 +26,7 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ email });
   }
 
-  async register(user: User): Promise<User> {
+  async register(user: RegisterDto): Promise<User> {
     const existingUser = await this.findOne(user.email);
     if (existingUser) {
       throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
@@ -46,7 +48,18 @@ export class UsersService {
     return await this.usersRepository.findOneBy({id});
   }
 
-  async changePassword(id: number, newPassword: string): Promise<any> {
+  async changePassword(id: number, newPassword: string, oldPassword?: string) {
+    const user = this.usersRepository.findOneBy({ id })
+    if (await this.validateUser((await user).email, newPassword)) {
+      throw new HttpException('Your current password is the same as new', HttpStatus.BAD_REQUEST)
+    }
+
+    if (oldPassword) {
+      if (!await this.validateUser((await user).email, oldPassword)) {
+        throw new HttpException('Invalid old password.Try again', HttpStatus.BAD_REQUEST)
+      }
+    }
+    
     const hashedPassword = await bcrypt.hash(newPassword, parseInt(process.env.SALT));
     return await this.usersRepository.update(id, { password: hashedPassword });
   }

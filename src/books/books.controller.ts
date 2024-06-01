@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { Book } from './book.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { mediaFileFilter } from 'src/validators';
+import { Response } from 'express';
+import { join } from 'path';
 
 @ApiTags('books')
 @ApiBearerAuth()
@@ -12,11 +16,30 @@ export class BooksController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @UseInterceptors(FileInterceptor('coverImage', {
+    fileFilter: (req, file, cb) => mediaFileFilter(req, file, cb)
+  }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({schema: {
+    type: "object",
+    properties: {
+      title: {
+        type: 'string'
+      },
+      subtitle: {
+        type: 'string',
+      },
+      coverImage: {
+        type: 'string',
+        format: 'binary'
+      }
+    }
+  }})
   @ApiOperation({ summary: 'Create a new book' })
   @ApiResponse({ status: 201, description: 'The book has been successfully created.' })
-  async create(@Body() book: Book, @Request() req): Promise<Book> {
+  async create(@UploadedFile() file: Express.Multer.File, @Body() book: Book, @Request() req): Promise<Book> {
     book.user = req.user;
-    return this.booksService.create(book);
+    return this.booksService.create(book, file);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -38,7 +61,7 @@ export class BooksController {
   @Put(':id')
   @ApiOperation({ summary: 'Update a book by ID' })
   @ApiResponse({ status: 200, description: 'The book has been successfully updated.' })
-  async update(@Param('id') id: number, @Body() book: Book): Promise<Book> {
+  async update(@Param('id') id: number, @Body() book: Partial<Book>): Promise<Book> {
     return this.booksService.update(id, book);
   }
 
@@ -48,5 +71,12 @@ export class BooksController {
   @ApiResponse({ status: 204, description: 'The book has been successfully deleted.' })
   async remove(@Param('id') id: number): Promise<void> {
     return this.booksService.remove(id);
+  }
+
+  @Get('coverImage/:filename')
+  @ApiOperation({ summary: 'Get source book`s cover image' })
+  @ApiResponse({ status: 200, description: 'The book.' })
+  async getBookCoverImage(@Res() res: Response, @Param('filename') filename: string)  {
+    return res.sendFile(join(__dirname, '..', '..', 'files', 'books', filename))
   }
 }
