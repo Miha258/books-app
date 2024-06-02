@@ -6,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { RegisterDto } from './dto/register.dto';
-import { ChangePasswordDto } from './dto/changePassword.dto';
 
 
 @Injectable()

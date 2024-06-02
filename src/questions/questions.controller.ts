@@ -122,13 +122,4 @@ export class QuestionsController {
     const file = await this.questionsService.getFile(type, filename)
     return res.sendFile(file)
   }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Generate pdf file' })
-  @ApiResponse({ status: 201, description: 'The file' })
-  @Post('pdf/:bookId')
-  async generatePdf(@Req() req, @Param() bookId: string) {
-    console.log(bookId)
-    return await this.questionsService.generatePdfForAllQuestions(req.user.userId, bookId)
-  }
 }

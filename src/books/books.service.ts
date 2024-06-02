@@ -5,12 +5,18 @@ import { Book } from './book.entity';
 import * as fs from 'node:fs/promises';
 import { join } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
+import * as PDFDocument from 'pdfkit';
+import * as fsSync from 'fs';
+import { Question } from 'src/questions/questions.entity';
+
 
 @Injectable()
 export class BooksService {
   constructor(
     @InjectRepository(Book)
     private booksRepository: Repository<Book>,
+    @InjectRepository(Question)
+    private questionsRepository: Repository<Question>
   ) {}
 
   async create(book: Book, file?: Express.Multer.File): Promise<Book> {
@@ -64,5 +70,57 @@ export class BooksService {
 
   async remove(id: number): Promise<void> {
     await this.booksRepository.delete(id);
+  }
+
+  async generatePdfForAllQuestions(userId: number, bookId: string): Promise<string> {
+    const questions = await this.questionsRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    })
+    const doc = new PDFDocument();
+
+    const pdfPath = join(__dirname, '..', '..', 'files', 'pdf', `questions_${userId}.pdf`);
+    const pdfStream = fsSync.createWriteStream(pdfPath);
+    doc.pipe(pdfStream);
+
+    let offset = 0
+    let counter = 0
+    for (const question of questions) {
+      // if (question.answer) {
+        if (question.media) {
+          counter += 1
+          try {
+            const mediaPath = join(__dirname, '..', '..', question.media);
+            const mediaExists = await fs.access(mediaPath).then(() => true).catch(() => false);
+            if (mediaExists) {
+              const pageWidth = doc.page.width;
+              const pageHeight = doc.page.height;
+              /* @ts-ignore */
+              const imgProps = doc.openImage(mediaPath);
+              const imgWidth = imgProps.width;
+              const imgHeight = imgProps.height;
+              const ratio = imgWidth / imgHeight;
+              const newWidth = pageWidth - 2 * doc.page.margins.left;
+              const newHeight = newWidth / ratio;
+              const y = (pageHeight - newHeight);
+              doc.image(mediaPath, doc.x, doc.y, { width: newWidth, height: newHeight }).moveDown();
+              offset += y
+            }
+          } catch (error) {
+            console.error(`Failed to load media file for question ${question.id}: ${error.message}`);
+          }
+        }
+        doc.text("test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test", doc.x, doc.y + offset, { align: 'left' }).moveDown();
+        offset = 0
+      }
+    // }
+    doc.end();
+
+    return new Promise((resolve, reject) => {
+      pdfStream.on('finish', () => {
+        resolve(pdfPath);
+      });
+      pdfStream.on('error', reject);
+    });
   }
 }

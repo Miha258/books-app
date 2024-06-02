@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, UseInterceptors, UploadedFile, Res, Req } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { Book } from './book.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -78,5 +78,13 @@ export class BooksController {
   @ApiResponse({ status: 200, description: 'The book.' })
   async getBookCoverImage(@Res() res: Response, @Param('filename') filename: string)  {
     return res.sendFile(join(__dirname, '..', '..', 'files', 'books', filename))
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Generate pdf file' })
+  @ApiResponse({ status: 201, description: 'The file' })
+  @Post('pdf/:bookId')
+  async generatePdf(@Req() req, @Param() bookId: string) {
+    return await this.booksService.generatePdfForAllQuestions(req.user.userId, bookId)
   }
 }
