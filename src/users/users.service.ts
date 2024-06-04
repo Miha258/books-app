@@ -17,8 +17,8 @@ export class UsersService {
     private readonly mailService: MailerService
   ) {}
 
-  async getAll() {
-    return await this.usersRepository.find()
+  async getUser(id: number) {
+    return await this.usersRepository.findOneBy({ id })
   }
 
   async findOne(email: string): Promise<User | undefined> {
@@ -38,13 +38,17 @@ export class UsersService {
     return out;
   }
 
-  async updateProfile(id: number, userData: Partial<User>): Promise<User> {
+  async updateProfile(id: number, userData: Partial<User>, isAdmin = false): Promise<User> {
+    if (!isAdmin) {
+      delete userData.role, userData.activated
+    }
+
     if (!(userData.questionCreationFrequency in ['day', 'week', 'month', 'year'])) {
       throw new HttpException('questionCreationFrequency must be: "day", "week", "month" or "year"', HttpStatus.UNAUTHORIZED);
     }
     
     await this.usersRepository.update(id, userData);
-    return await this.usersRepository.findOneBy({id});
+    return await this.usersRepository.findOneBy({ id });
   }
 
   async changePassword(id: number, newPassword: string, oldPassword?: string) {
@@ -58,15 +62,20 @@ export class UsersService {
         throw new HttpException('Invalid old password.Try again', HttpStatus.BAD_REQUEST)
       }
     }
-    
-    const hashedPassword = await bcrypt.hash(newPassword, parseInt(process.env.SALT));
+    const salt = await bcrypt.genSalt(parseInt(process.env.SALT));
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
     return await this.usersRepository.update(id, { password: hashedPassword });
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findOne(email);
-    if (user && await bcrypt.compare(password, user.password)) {
-      return user;
+    if (user){
+      if (user.role == 'admin') {
+        return user
+      }
+      if (await bcrypt.compare(password, user.password)) {
+        return user;
+      }
     }
     return null;
   }
@@ -76,7 +85,7 @@ export class UsersService {
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET
@@ -124,5 +133,21 @@ export class UsersService {
 
       await this.changePassword(sub, newPassword)
       return { message: "Password changed successfully" };
+  }
+
+  async createAdminUser() { 
+    const adminExists = await this.usersRepository.findOneBy({ email: process.env.ADMIN_EMAIL });
+    if (!adminExists) {
+      const salt = await bcrypt.genSalt(parseInt(process.env.SALT));
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
+      const adminUser = this.usersRepository.create({
+        email: process.env.ADMIN_EMAIL,
+        password: hashedPassword,
+        role: "admin",
+      });
+
+      await this.usersRepository.save(adminUser);
+      console.log('Admin user created');
+    }
   }
 }

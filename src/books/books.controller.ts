@@ -38,8 +38,7 @@ export class BooksController {
   @ApiOperation({ summary: 'Create a new book' })
   @ApiResponse({ status: 201, description: 'The book has been successfully created.' })
   async create(@UploadedFile() file: Express.Multer.File, @Body() book: Book, @Request() req): Promise<Book> {
-    book.user = req.user;
-    return this.booksService.create(book, file);
+    return this.booksService.create(book, req.user.userId, file);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,7 +83,7 @@ export class BooksController {
   @ApiOperation({ summary: 'Generate pdf file' })
   @ApiResponse({ status: 201, description: 'The file' })
   @Post('pdf/:bookId')
-  async generatePdf(@Req() req, @Param() bookId: string) {
+  async generatePdf(@Req() req, @Param('bookId') bookId: string) {
     return await this.booksService.generatePdfForAllQuestions(req.user.userId, bookId)
   }
 }

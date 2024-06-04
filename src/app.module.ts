@@ -10,6 +10,11 @@ import { join } from 'path';
 import { CronModule } from './crons/cron.module';
 import { BooksModule } from './books/books.module';
 import { createConnection } from 'mysql2/promise';
+import { BillingsModule } from './billings/billings.module';
+import { PaynamentModule } from './paynament/paynament.module';
+import { GptService } from './gpt/gpt.service';
+import { GptModule } from './gpt/gpt.module';
+
 
 async function ensureDatabaseExists() {
   const connection = await createConnection({
@@ -30,7 +35,6 @@ async function ensureDatabaseExists() {
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
         await ensureDatabaseExists();
-
         return {
           type: 'mysql',
           host: process.env.DB_HOST,
@@ -59,6 +63,8 @@ async function ensureDatabaseExists() {
     QuestionsModule,
     CronModule,
     BooksModule,
+    BillingsModule,
+    PaynamentModule,
   ]
 })
 export class AppModule {}

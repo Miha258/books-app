@@ -61,6 +61,46 @@ export class User {
   @Column({ nullable: true })
   cardCvv: number;
 
+  @ApiProperty({ description: 'User`s role ("user" or "admin:)', nullable: true })
+  @Column({ nullable: true })
+  role: string;
+
+  @ApiProperty({ description: 'Is user activated' })
+  @Column({ default: false })
+  activated: boolean
+
+  @ApiProperty({ description: 'Stripe customer id' })
+  @Column({ nullable: true })
+  customerId: string
+
+  @ApiProperty({ description: 'The city of the shipping address' })
+  @Column({ nullable: true })
+  city: string;
+
+  @ApiProperty({ description: 'The country code of the shipping address' })
+  @Column({ nullable: true })
+  country_code: string;
+
+  @ApiProperty({ description: 'The name of the recipient' })
+  @Column({ nullable: true })
+  name: string;
+
+  @ApiProperty({ description: 'The phone number of the recipient' })
+  @Column({ nullable: true })
+  phone_number: string;
+
+  @ApiProperty({ description: 'The postcode of the shipping address' })
+  @Column({ nullable: true })
+  postcode: string;
+
+  @ApiProperty({ description: 'The state code of the shipping address', nullable: true })
+  @Column({ nullable: true })
+  state_code: string;
+
+  @ApiProperty({ description: 'The first line of the street address' })
+  @Column({ nullable: true })
+  street1: string;
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);

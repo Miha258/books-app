@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Put, UseGuards, Request, Param, Patch, Get } from '@nestjs/common';
+import { Controller, Post, Body, Put, UseGuards, Param, Patch, Get, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -8,17 +8,27 @@ import { RegisterDto } from './dto/register.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { ResetPasswordDto } from './dto/resetPasswornd.dto';
 import { SendResetMailDto } from './dto/sendResetMail.dto';
+import { AdminGuard } from 'src/guards/isAdmin.guard';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users.' })
-  async getAll() {
-    return await this.usersService.getAll();
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user (You need to be admin)' })
+  @ApiResponse({ status: 200, description: 'Get one user' })
+  async getUser(@Param('id') userId: string) {
+    return await this.usersService.getUser(parseInt(userId))
+  }
+  
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @ApiOperation({ summary: 'Get me' })
+  @ApiResponse({ status: 200, description: 'Get me' })
+  async getMe(@Req() req) {
+    return await this.usersService.getUser(req.user.userId)
   }
 
   @Post('register')
@@ -40,8 +50,17 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'The user profile has been successfully updated.' })
-  async updateProfile(@Request() req, @Body() userData: User) {
+  async updateProfile(@Req() req, @Body() userData: User) {
     return await this.usersService.updateProfile(req.user.userId, userData);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Put('update-profile/:id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin update user profile (You need to be admin)' })
+  @ApiResponse({ status: 200, description: 'The user profile has been successfully updated.' })
+  async adminUpdateProfile(@Param('id') userId: string, @Body() userData: User) {
+    return await this.usersService.updateProfile(parseInt(userId), userData, true);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -49,7 +68,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'The password has been successfully changed.' })
-  async changePassword(@Request() req, @Body() { newPassword }: ChangePasswordDto) {
+  async changePassword(@Req() req, @Body() { newPassword }: ChangePasswordDto) {
     return await this.usersService.changePassword(req.user.userId, newPassword);
   }
 

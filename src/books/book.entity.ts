@@ -19,6 +19,10 @@ export class Book {
   @Column({ nullable: true })
   coverImage: string;
 
+  @ApiProperty({ description: 'Is book generated in pdf', nullable: true })
+  @Column({ nullable: true })
+  generated: boolean;
+
   @ManyToOne(() => User, user => user.books)
   user: User;
 }

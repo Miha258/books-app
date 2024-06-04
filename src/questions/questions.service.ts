@@ -6,6 +6,7 @@ import { User } from '../users/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
 import * as fs from 'node:fs/promises';
+import { GptService } from 'src/gpt/gpt.service';
 
 
 @Injectable()
@@ -14,16 +15,18 @@ export class QuestionsService {
     @InjectRepository(Question)
     private questionsRepository: Repository<Question>,
     @InjectRepository(User)
-    private usersRepository: Repository<User>
-
+    private usersRepository: Repository<User>,
+    private gptService: GptService
   ) {}
 
+
   async create(question: Question, userId: number, files?: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }) {
+    delete question.answer
     question.user = await this.usersRepository.findOneBy({ id: userId });
     
     let uploadPath: string | null
     let uploadBuff: any | null
-
+    
     if (files) {
       if (files.media) {
         const mediaFile = files.media[0].originalname
@@ -46,6 +49,8 @@ export class QuestionsService {
       }
     }
     
+    question.question = await this.gptService.generateText(process.env.GPT_PROMPT)
+    console.log(question.question)
     await this.questionsRepository.save(question)
     delete question.user
     return question
@@ -69,6 +74,7 @@ export class QuestionsService {
   }
 
   async update(id: number, updateData: Partial<Question>, files?: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }) {
+    delete updateData.question
     const question = await this.findOne(id)
     let uploadPath: string | null
     let uploadBuff: any | null
