@@ -44,7 +44,7 @@ export class UsersService {
     }
 
     if (!(userData.questionCreationFrequency in ['day', 'week', 'month', 'year'])) {
-      throw new HttpException('questionCreationFrequency must be: "day", "week", "month" or "year"', HttpStatus.UNAUTHORIZED);
+      throw new HttpException("questionCreationFrequency must be: day, week, month or year", HttpStatus.BAD_REQUEST);
     }
     
     await this.usersRepository.update(id, userData);
