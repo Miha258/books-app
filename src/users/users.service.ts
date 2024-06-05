@@ -52,13 +52,13 @@ export class UsersService {
   }
 
   async changePassword(id: number, newPassword: string, oldPassword?: string) {
-    const user = this.usersRepository.findOneBy({ id })
-    if (await this.validateUser((await user).email, newPassword)) {
+    const user = await this.usersRepository.findOneBy({ id })
+    if (await this.validateUser(user.email, newPassword)) {
       throw new HttpException('Your current password is the same as new', HttpStatus.BAD_REQUEST)
     }
 
     if (oldPassword) {
-      if (!await this.validateUser((await user).email, oldPassword)) {
+      if (!await this.validateUser(user.email, oldPassword)) {
         throw new HttpException('Invalid old password.Try again', HttpStatus.BAD_REQUEST)
       }
     }
