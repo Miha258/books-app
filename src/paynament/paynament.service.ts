@@ -10,11 +10,10 @@ export class PaymentService {
   public stripe: Stripe;
 
   constructor(
-    private configService: ConfigService, 
     @InjectRepository(User)
     private usersRepository: Repository<User>
   ) {
-    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY'), {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-04-10',
     });
   }
