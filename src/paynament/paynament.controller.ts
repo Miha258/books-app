@@ -2,6 +2,8 @@ import { Controller, Post, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import { PaymentService } from './paynament.service';
 import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CustomerDto } from './dto/paynamentIntent.dto';
+import { PaymentIntentDto } from './dto/customer.dto';
 
 @ApiTags('payment')
 @Controller('payment')
@@ -12,7 +14,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Create a new payment intent' })
   @ApiResponse({ status: 201, description: 'The payment intent has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
-  async createPaymentIntent(@Body() body: { amount: number, currency: string }) {
+  async createPaymentIntent(@Body() body: PaymentIntentDto) {
     const paymentIntent = await this.paymentService.createPaymentIntent(body.amount, body.currency);
     return { clientSecret: paymentIntent.client_secret };
   }
@@ -21,7 +23,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Create a new Stripe customer' })
   @ApiResponse({ status: 201, description: 'The customer has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
-  async createCustomer(@Body() body: { email: string, name: string }) {
+  async createCustomer(@Body() body: CustomerDto) {
     const customer = await this.paymentService.createCustomer(body.email, body.name);
     return { customer };
   }
