@@ -43,7 +43,7 @@ export class UsersService {
       delete userData.role, userData.activated
     }
 
-    if (!(userData.questionCreationFrequency in ['day', 'week', 'month', 'year'])) {
+    if (!(['day', 'week', 'month', 'year'].includes(userData.questionCreationFrequency))) {
       throw new HttpException("questionCreationFrequency must be: day, week, month or year", HttpStatus.BAD_REQUEST);
     }
     
