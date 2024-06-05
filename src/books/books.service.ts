@@ -107,7 +107,6 @@ export class BooksService {
 
       let offset = 0
       let counter = 0
-      console.log(questions.length)
       for (const question of questions) {
         if (question.answer) {
           if (question.media) {

@@ -33,6 +33,7 @@ export class QuestionsController {
     schema: {
     type: "object",
     properties: {
+      question: { type: 'string' },
       media: {
         type: 'string',
         format: 'binary',

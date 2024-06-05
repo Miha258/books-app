@@ -88,7 +88,8 @@ export class UsersService {
     const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload, {
-        secret: process.env.JWT_SECRET
+        secret: process.env.JWT_SECRET,
+        expiresIn: process.env.JWT_LIFE
       }),
       ...payload
     };

@@ -16,7 +16,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @Get(':id')
+  @Get('user/:id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user (You need to be admin)' })
   @ApiResponse({ status: 200, description: 'Get one user' })
   async getUser(@Param('id') userId: string) {
@@ -25,9 +26,11 @@ export class UsersController {
   
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get me' })
   @ApiResponse({ status: 200, description: 'Get me' })
   async getMe(@Req() req) {
+    console.log(req.user)
     return await this.usersService.getUser(req.user.userId)
   }
 

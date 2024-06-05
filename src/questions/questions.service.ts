@@ -43,20 +43,19 @@ export class QuestionsService {
         uploadPath = join(__dirname, '..', '..', question.voice)
         uploadBuff = files.voice[0].buffer
       }
-  
+      
       if (uploadPath) {
         await fs.writeFile(uploadPath, uploadBuff)
       }
     }
     
-    question.question = await this.gptService.generateText(process.env.GPT_PROMPT)
-    console.log(question.question)
+    question.question = question.question ? question.question : await this.gptService.generateText(process.env.GPT_PROMPT)
     await this.questionsRepository.save(question)
     delete question.user
     return question
   }
 
-  async findAllForUser(userId: number): Promise<Question[]> {
+  async findAllForUser(userId: number) {
     const questions = await this.questionsRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],

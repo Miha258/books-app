@@ -12,8 +12,6 @@ import { BooksModule } from './books/books.module';
 import { createConnection } from 'mysql2/promise';
 import { BillingsModule } from './billings/billings.module';
 import { PaynamentModule } from './paynament/paynament.module';
-import { GptService } from './gpt/gpt.service';
-import { GptModule } from './gpt/gpt.module';
 
 
 async function ensureDatabaseExists() {
