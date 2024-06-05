@@ -97,7 +97,7 @@ export class UsersService {
   async sendResetPassword(email: string) {
     const user = await this.findOne(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
 
     const token = this.jwtService.sign({ email: user.email, sub: user.id }, {
