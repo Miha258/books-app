@@ -30,7 +30,7 @@ export class User {
 
   @ApiProperty({ description: 'The phone number of the user', nullable: true })
   @Column({ nullable: true })
-  phone: string;
+  phoneNumber: string;
 
   @ApiProperty({ description: 'The email address where the user receives questions', nullable: true })
   @Column({ nullable: true })
