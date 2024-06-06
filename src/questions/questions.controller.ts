@@ -46,7 +46,7 @@ export class QuestionsController {
   }})
   @ApiOperation({ summary: 'Create a new question'})
   @ApiResponse({ status: 201, description: 'The question has been successfully created.' })
-  async create(@UploadedFiles() files: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }, @Body() question: Question, @Request() req): Promise<Question> {
+  async create(@UploadedFiles() files: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }, @Body() question: Question, @Request() req) {
     return this.questionsService.create(question, req.user.userId, files);
   }
   
@@ -54,7 +54,7 @@ export class QuestionsController {
   @Get()
   @ApiOperation({ summary: 'Get all questions for the authenticated user' })
   @ApiResponse({ status: 200, description: 'List of questions.' })
-  async findAllForUser(@Req() req): Promise<Question[]> {
+  async findAllForUser(@Req() req) {
     return this.questionsService.findAllForUser(req.user.userId);
   }
 
@@ -62,8 +62,8 @@ export class QuestionsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a question by ID' })
   @ApiResponse({ status: 200, description: 'The question.' })
-  async findOne(@Param('id') id: string): Promise<Question> {
-    return this.questionsService.findOne(parseInt(id));
+  async findOne(@Param('id') id: number): Promise<Question> {
+    return this.questionsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -101,16 +101,16 @@ export class QuestionsController {
   }})
   @ApiOperation({ summary: 'Update a question by ID' })
   @ApiResponse({ status: 200, description: 'The question has been successfully updated.' })
-  async update(@UploadedFiles() files: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }, @Param('id') id: string, @Body() question: Partial<Question>): Promise<Question> {
-    return this.questionsService.update(parseInt(id), question, files);
+  async update(@UploadedFiles() files: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }, @Param('id') id: number, @Body() question: Partial<Question>): Promise<Question> {
+    return this.questionsService.update(id, question, files);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a question by ID' })
   @ApiResponse({ status: 204, description: 'The question has been successfully deleted.' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.questionsService.remove(parseInt(id));
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.questionsService.remove(id);
   }
 
   @UseGuards(JwtAuthGuard)
