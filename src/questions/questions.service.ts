@@ -116,29 +116,16 @@ export class QuestionsService {
   }
 
   async getFile(type: string, filename: string) {
-    let filePath: string
-    let fileExists: boolean
-
-    switch (type) {
-      case 'media':
-        filePath = join(__dirname, '..', '..', 'files', 'media', filename)
-        fileExists = await fs.access(filePath).then(() => true).catch(() => false)
-        if (!fileExists) {
-          throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
-        }
-        return filePath
-      case 'voice':
-        filePath = join(__dirname, '..', '..', 'files', 'voice', filename)
-        fileExists = await fs.access(filePath).then(() => true).catch(() => false)
-        if (!fileExists) {
-          throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
-        }
-        return filePath
-      default:
-        throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
+    if (!['media', 'voice'].includes(type)) {
+      throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
     }
 
+    const filePath = join(__dirname, '..', '..', 'files', type, filename)
+    const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
+    console.log(filePath)
+    if (!fileExists) {
+      throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
+    }
+    return filePath
   }
-
-  
 }
