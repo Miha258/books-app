@@ -43,10 +43,12 @@ export class UsersService {
       delete userData.role, userData.activated
     }
 
-    if (!(['day', 'week', 'month', 'year'].includes(userData.questionCreationFrequency))) {
-      throw new HttpException("questionCreationFrequency must be: day, week, month or year", HttpStatus.BAD_REQUEST);
+    if (userData.questionCreationFrequency) {
+      if (!(['day', 'week', 'month', 'year'].includes(userData.questionCreationFrequency))) {
+        throw new HttpException("questionCreationFrequency must be: day, week, month or year", HttpStatus.BAD_REQUEST);
+      }  
     }
-    
+
     await this.usersRepository.update(id, userData);
     return await this.usersRepository.findOneBy({ id });
   }

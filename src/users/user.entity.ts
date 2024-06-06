@@ -47,7 +47,7 @@ export class User {
 
   @ApiProperty({ description: 'The name on the user\'s card', nullable: true })
   @Column({ nullable: true })
-  cardName: number;
+  cardName: string;
 
   @ApiProperty({ description: 'The card number of the user', nullable: true })
   @Column({ nullable: true })

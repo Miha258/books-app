@@ -66,7 +66,7 @@ export class QuestionsService {
     })
   }
 
-  async findOne(id: number): Promise<Question> {
+  async findOne(id: number) {
     const question = await this.questionsRepository.findOne({ where: { id }, relations: ['user'] });
     delete question.user
     return question
