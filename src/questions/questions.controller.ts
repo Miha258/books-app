@@ -114,11 +114,11 @@ export class QuestionsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('file/:filename')
+  @Get(':type/:filename')
   @ApiOperation({ summary: 'Get question source file media/audio (type parameter must be "media" or "audio")' })
   @ApiResponse({ status: 200, description: 'The question.' })
-  async getMedia(@Res() res: Response, @Param('filename') filename: string) {
-    const file = await this.questionsService.getFile(filename)
+  async getMedia(@Res() res: Response, @Param('type') type: string, @Param('filename') filename: string) {
+    const file = await this.questionsService.getFile(type, filename)
     return res.sendFile(file)
   }
 }

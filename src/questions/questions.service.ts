@@ -115,13 +115,22 @@ export class QuestionsService {
     await this.questionsRepository.delete(id);
   }
 
-  async getFile(filename: string) {
+  async getFile(type: string, filename: string) {
     const filePath = join(__dirname, '..', '..', filename)
-    console.log(filePath)
     const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
-    if (fileExists) {
-      return filePath
+    if (!fileExists) {
+      throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
     }
-    throw new HttpException("File not found", HttpStatus.NOT_FOUND)
+
+    switch (type) {
+      case 'media':
+        return filePath
+      case 'voice':
+        return filePath
+      default:
+        throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
+    }
   }
+
+  
 }
