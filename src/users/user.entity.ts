@@ -13,7 +13,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @ApiProperty({ description: 'The password of the user' })
   @Column()
   password: string;
 

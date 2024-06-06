@@ -39,6 +39,7 @@ export class UsersService {
   }
 
   async updateProfile(id: number, userData: Partial<User>, isAdmin = false): Promise<User> {
+    delete userData.password
     if (!isAdmin) {
       delete userData.role, userData.activated
     }
