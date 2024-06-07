@@ -141,6 +141,7 @@ export class QuestionsService {
     }
 
     const filePath = join(__dirname, '..', '..', 'files', type, filename)
+    console.log(filePath)
     const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
     console.log(filePath)
     if (!fileExists) {

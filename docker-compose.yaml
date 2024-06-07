@@ -37,8 +37,11 @@ services:
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       ROOT_URL: ${ROOT_URL}
+    volumes:
+      - files_data:/app/files
     networks:
       - app-network
 
 volumes:
   mysql_data:
+  files_data:
