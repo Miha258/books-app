@@ -89,21 +89,20 @@ export class QuestionsService {
     let uploadBuff: any | null
 
     if (files) {
+      if (question.media && question.media !== 'undefined') {
+        const oldMediaPath = join(__dirname, '..', '..', question.media)
+        if (await fs.access(oldMediaPath).then(() => true).catch(() => false)) {
+          await fs.unlink(oldMediaPath)
+        }
+      }
+      if (question.voice && question.media !== 'undefined') {
+        const oldVoicePath = join(__dirname, '..', '..', question.voice)
+        if (await fs.access(oldVoicePath).then(() => true).catch(() => false)) {
+          await fs.unlink(oldVoicePath)
+        }
+      }
+      
       if (files.media) {
-        if (question.media && question.media !== 'undefined') {
-          const oldMediaPath = join(__dirname, '..', '..', question.media)
-          if (await fs.access(oldMediaPath).then(() => true).catch(() => false)) {
-            await fs.unlink(oldMediaPath)
-          }
-        }
-        if (question.voice && question.media !== 'undefined') {
-          const oldVoicePath = join(__dirname, '..', '..', question.voice)
-          if (await fs.access(oldVoicePath).then(() => true).catch(() => false)) {
-            await fs.unlink(oldVoicePath)
-          }
-        }
-
-
         const mediaFile = files.media[0].originalname
         const separatedMediaFilename = mediaFile.split('.')
         updateData.media = 'files/media/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
@@ -122,7 +121,9 @@ export class QuestionsService {
         uploadBuff = files.voice[0].buffer
       }
   
+      console.log(uploadPath)
       if (uploadPath) {
+        console.log('writed')
         await fs.writeFile(uploadPath, uploadBuff)
       }
     }
