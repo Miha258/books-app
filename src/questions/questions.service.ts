@@ -28,46 +28,41 @@ export class QuestionsService {
 
   async create(question: Question, userId: number, files?: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }) {
     const questions = await this.questionsRepository.find({
-      where: { user: { id: userId } },
-      relations: ['user'],
-    })
-    if (questions.length == 100) {
-      throw new HttpException('You can create a maximum of 100 questions per book', HttpStatus.BAD_REQUEST)
+        where: { user: { id: userId } },
+        relations: ['user'],
+    });
+
+    if (questions.length === 100) {
+        throw new HttpException('You can create a maximum of 100 questions per book', HttpStatus.BAD_REQUEST);
     }
-    
-    delete question.answer
+
+    delete question.answer;
     question.user = await this.usersRepository.findOneBy({ id: userId });
 
-  
-    let uploadPath: string | null
-    let uploadBuff: any | null
-    
     if (files) {
-      if (files.media) {
-        const mediaFile = files.media[0].originalname
-        const separatedMediaFilename = mediaFile.split('.')
-        question.media = 'files/media/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
-        uploadPath = join(__dirname, '..', '..', question.media)
-        uploadBuff = files.media[0].buffer
-      }
-  
-      if (files.voice) {
-        const voiceFile = files.voice[0].originalname
-        const separatedVoiceFilename = voiceFile.split('.')
-        question.voice = 'files/voice/' + uuidv4() + "." + separatedVoiceFilename[separatedVoiceFilename.length - 1]
-        uploadPath = join(__dirname, '..', '..', question.voice)
-        uploadBuff = files.voice[0].buffer
-      }
-      
-      if (uploadPath) {
-        await fs.writeFile(uploadPath, uploadBuff)
-      }
+        if (files.media) {
+            const mediaFile = files.media[0].originalname;
+            const separatedMediaFilename = mediaFile.split('.');
+            question.media = 'files/media/' + uuidv4() + '.' + separatedMediaFilename.pop();
+            const mediaUploadPath = join(__dirname, '..', '..', question.media);
+            const mediaUploadBuff = files.media[0].buffer;
+            await fs.writeFile(mediaUploadPath, mediaUploadBuff);
+        }
+
+        if (files.voice) {
+            const voiceFile = files.voice[0].originalname;
+            const separatedVoiceFilename = voiceFile.split('.');
+            question.voice = 'files/voice/' + uuidv4() + '.' + separatedVoiceFilename.pop();
+            const voiceUploadPath = join(__dirname, '..', '..', question.voice);
+            const voiceUploadBuff = files.voice[0].buffer;
+            await fs.writeFile(voiceUploadPath, voiceUploadBuff);
+        }
     }
-    
-    question.question = question.question ? question.question : await this.gptService.generateText(process.env.GPT_PROMPT)
-    await this.questionsRepository.save(question)
-    delete question.user
-    return question
+
+    question.question = question.question ? question.question : await this.gptService.generateText(process.env.GPT_PROMPT);
+    await this.questionsRepository.save(question);
+    delete question.user;
+    return question;
   }
 
   async findAllForUser(userId: number) {
@@ -95,9 +90,19 @@ export class QuestionsService {
 
     if (files) {
       if (files.media) {
+        console.log(typeof question.media)
         if (question.media) {
-          await fs.unlink(join(__dirname, '..', '..', question.media))
+          const oldMediaPath = join(__dirname, '..', '..', question.media)
+          await fs.unlink(oldMediaPath)
         }
+        if (question.voice) {
+          const oldVoicePath = join(__dirname, '..', '..', question.voice)
+          if (await fs.access(oldVoicePath).then(() => true).catch(() => false)) {
+            await fs.unlink(oldVoicePath)
+          }
+        }
+
+
         const mediaFile = files.media[0].originalname
         const separatedMediaFilename = mediaFile.split('.')
         updateData.media = 'files/media/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
