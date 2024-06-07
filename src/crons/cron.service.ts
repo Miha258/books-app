@@ -23,7 +23,7 @@ export class CronService {
         where: { user: { id: user.id } },
         relations: ['user'],
       })
-      if (questions.length <= 100) {
+      if (questions.length != 100) {
         const question = new Question()
         question.user = user
         question.question = questionText

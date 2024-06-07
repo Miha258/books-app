@@ -20,12 +20,18 @@ export class QuestionsService {
   ) {}
 
 
+  async isExist(id: number) {
+    if (!await this.questionsRepository.existsBy({ id })) {
+      throw new HttpException('Question not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
   async create(question: Question, userId: number, files?: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }) {
     const questions = await this.questionsRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
     })
-    if (questions.length <= 100) {
+    if (questions.length == 100) {
       throw new HttpException('You can create a maximum of 100 questions per book', HttpStatus.BAD_REQUEST)
     }
     
