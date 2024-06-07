@@ -19,12 +19,15 @@ export class QuestionsController {
     { name: 'media', maxCount: 1 },
   ], {
     fileFilter: (req, file, cb) => {
-      if (file.fieldname === 'media') {
-        return mediaFileFilter(req, file, cb);
-      } else if (file.fieldname === 'voice') {
-        return audioFileFilter(req, file, cb);
+      try {
+        if (file.fieldname === 'media') {
+          return mediaFileFilter(req, file, cb);
+        } else if (file.fieldname === 'voice') {
+          return audioFileFilter(req, file, cb);
+        }
+      } catch(e) {
+        cb(new HttpException(`Invalid file format: ${e}`, HttpStatus.UNSUPPORTED_MEDIA_TYPE), false);
       }
-      cb(new Error('Unexpected field'), false);
     },
   }))
   @Post()

@@ -30,7 +30,6 @@ export class UsersController {
   @ApiOperation({ summary: 'Get me' })
   @ApiResponse({ status: 200, description: 'Get me' })
   async getMe(@Req() req) {
-    console.log(req.user)
     return await this.usersService.getUser(req.user.userId)
   }
 
