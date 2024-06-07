@@ -25,6 +25,13 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ email });
   }
 
+  async isExist(id: number) {
+    const existingUser = await this.usersRepository.existsBy({ id });
+    if (existingUser) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
   async register(user: RegisterDto): Promise<User> {
     const existingUser = await this.findOne(user.email);
     if (existingUser) {
@@ -39,6 +46,8 @@ export class UsersService {
   }
 
   async updateProfile(id: number, userData: Partial<User>, isAdmin = false): Promise<User> {
+    await this.isExist(id)
+    
     delete userData.password
     if (!isAdmin) {
       delete userData.role, userData.activated
@@ -55,6 +64,7 @@ export class UsersService {
   }
 
   async changePassword(id: number, newPassword: string, oldPassword?: string) {
+    await this.isExist(id)
     const user = await this.usersRepository.findOneBy({ id })
     if (await this.validateUser(user.email, newPassword)) {
       throw new HttpException('Your current password is the same as new', HttpStatus.BAD_REQUEST)
@@ -95,7 +105,7 @@ export class UsersService {
         expiresIn: process.env.JWT_LIFE
       }),
       ...payload
-    };
+    }
   }
 
   async sendResetPassword(email: string) {
@@ -140,18 +150,18 @@ export class UsersService {
   }
 
   async createAdminUser() { 
-    const adminExists = await this.usersRepository.findOneBy({ email: process.env.ADMIN_EMAIL });
+    const adminExists = await this.findOne(process.env.ADMIN_EMAIL)
     if (!adminExists) {
       const salt = await bcrypt.genSalt(parseInt(process.env.SALT));
-      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt)
       const adminUser = this.usersRepository.create({
         email: process.env.ADMIN_EMAIL,
         password: hashedPassword,
         role: "admin",
       });
 
-      await this.usersRepository.save(adminUser);
-      console.log('Admin user created');
+      await this.usersRepository.save(adminUser)
+      console.log('Admin user created')
     }
   }
 }

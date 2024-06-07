@@ -83,6 +83,10 @@ export class BooksService {
       where: { user: { id: userId } },
       relations: ['user'],
     })
+
+    if (questions.length == 0) {
+      throw new HttpException('You must answer at least one question', HttpStatus.LENGTH_REQUIRED)
+    }
     
     const doc = new PDFDocument();
     const pdfPath = join(__dirname, '..', '..', 'files', 'pdf', `questions_${uuidv4()}.pdf`);

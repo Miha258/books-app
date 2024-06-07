@@ -21,9 +21,18 @@ export class QuestionsService {
 
 
   async create(question: Question, userId: number, files?: { media?: Express.Multer.File[], voice?: Express.Multer.File[] }) {
+    const questions = await this.questionsRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    })
+    if (questions.length <= 100) {
+      throw new HttpException('You can create a maximum of 100 questions per book', HttpStatus.BAD_REQUEST)
+    }
+    
     delete question.answer
     question.user = await this.usersRepository.findOneBy({ id: userId });
-    
+
+  
     let uploadPath: string | null
     let uploadBuff: any | null
     
@@ -107,7 +116,6 @@ export class QuestionsService {
     }
     await this.questionsRepository.update(id, updateData);
     const updated = await this.findOne(id)
-    delete updated.user
     return updated
   }
 
@@ -127,5 +135,18 @@ export class QuestionsService {
       throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
     }
     return filePath
+  }
+
+  async getCount(userId: number) {
+    const questions = await this.questionsRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    })
+    return questions.reduce((prev, cur) => {
+      if (cur.answer) {
+        return prev += 1
+      }
+      return 0
+    }, 0)
   }
 }

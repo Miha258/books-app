@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Req, UseInterceptors, UploadedFiles, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Req, UseInterceptors, UploadedFiles, Res, HttpException, HttpStatus } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { Question } from './questions.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -62,7 +62,7 @@ export class QuestionsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a question by ID' })
   @ApiResponse({ status: 200, description: 'The question.' })
-  async findOne(@Param('id') id: number): Promise<Question> {
+  async findOne(@Param('id') id: number) {
     return this.questionsService.findOne(id);
   }
 
@@ -77,7 +77,7 @@ export class QuestionsController {
       } else if (file.fieldname === 'voice') {
         return audioFileFilter(req, file, cb);
       }
-      cb(new Error('Unexpected field'), false);
+      cb(new HttpException('Unexpected field', HttpStatus.UNSUPPORTED_MEDIA_TYPE), false);
     },
   }))
   @Put(':id')
@@ -114,7 +114,15 @@ export class QuestionsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':type/:filename')
+  @Get('answers/count')
+  @ApiOperation({ summary: 'Get question answers count' })
+  @ApiResponse({ status: 200, description: 'Questions count.' })
+  async getAnswers(@Req() req) {
+    return { count: await this.questionsService.getCount(req.user.userId) }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('file/:type/:filename')
   @ApiOperation({ summary: 'Get question source file media/audio (type parameter must be "media" or "audio")' })
   @ApiResponse({ status: 200, description: 'The question.' })
   async getMedia(@Res() res: Response, @Param('type') type: string, @Param('filename') filename: string) {

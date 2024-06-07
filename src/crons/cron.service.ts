@@ -2,12 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository } from 'typeorm';
-import { User } from '../users/user.entity';
-import { QuestionsService } from 'src/questions/questions.service';
+import { User } from '../users/user.entity';  
 import { GptService } from 'src/gpt/gpt.service';
 import { Question } from 'src/questions/questions.entity';
-QuestionsService
-
 
 @Injectable()
 export class CronService {
@@ -22,10 +19,16 @@ export class CronService {
   async sendQuestions(users: User[]) {
     const questionText = await this.gptService.generateText(process.env.GPT_PROMPT)
     for (let user of users) {
-      const question = new Question()
-      question.user = user
-      question.question = questionText
-      await this.questionsRepository.save(question)
+      const questions = await this.questionsRepository.find({
+        where: { user: { id: user.id } },
+        relations: ['user'],
+      })
+      if (questions.length <= 100) {
+        const question = new Question()
+        question.user = user
+        question.question = questionText
+        await this.questionsRepository.save(question)
+      }
     }
   }
 
