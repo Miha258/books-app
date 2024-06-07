@@ -32,7 +32,7 @@ export class BooksService {
     if (file) {
       const mediaFile = file.originalname
       const separatedMediaFilename = mediaFile.split('.')
-      book.coverImage = 'files/books/' + uuidv4() + "." + separatedMediaFilename[separatedMediaFilename.length - 1]
+      book.coverImage = 'files/books/' + uuidv4() + "." + separatedMediaFilename.pop()
       uploadPath = join(__dirname, '..', '..', book.coverImage)
       uploadBuff = file.buffer
       await fs.writeFile(uploadPath, uploadBuff)
@@ -94,9 +94,13 @@ export class BooksService {
     doc.pipe(pdfStream);
     const book = await this.booksRepository.findOneBy({ id: parseInt(bookId) });
     if (book) {
-      if (book.coverImage) {
-        doc.image(join(__dirname, '..', '..', book.coverImage), doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
-        doc.addPage()
+      if (book.coverImage && book.coverImage !== 'undefinded') {
+        const coverImagePath = join(__dirname, '..', '..', book.coverImage)
+        const coverImageExists = await fs.access(coverImagePath).then(() => true).catch(() => false);
+        if (coverImageExists) {
+          doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
+          doc.addPage()
+        }
       }
 
       if (book.title && book.subtitle) {
@@ -113,7 +117,7 @@ export class BooksService {
       let counter = 0
       for (const question of questions) {
         if (question.answer) {
-          if (question.media) {
+          if (question.media && question.media !== 'undefinded') {
             counter += 1
             try {
               const mediaPath = join(__dirname, '..', '..', question.media);
