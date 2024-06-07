@@ -27,7 +27,7 @@ export class UsersService {
 
   async isExist(id: number) {
     const existingUser = await this.usersRepository.existsBy({ id });
-    if (existingUser) {
+    if (!existingUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
   }
