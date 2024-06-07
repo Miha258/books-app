@@ -93,7 +93,9 @@ export class QuestionsService {
         console.log(typeof question.media)
         if (question.media) {
           const oldMediaPath = join(__dirname, '..', '..', question.media)
-          await fs.unlink(oldMediaPath)
+          if (await fs.access(oldMediaPath).then(() => true).catch(() => false)) {
+            await fs.unlink(oldMediaPath)
+          }
         }
         if (question.voice) {
           const oldVoicePath = join(__dirname, '..', '..', question.voice)
