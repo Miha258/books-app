@@ -145,7 +145,7 @@ export class QuestionsService {
     const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
     console.log(filePath)
     if (!fileExists) {
-      throw new HttpException("File not found", HttpStatus.BAD_REQUEST)
+      throw new HttpException("File not found", HttpStatus.NOT_FOUND)
     }
     return filePath
   }
