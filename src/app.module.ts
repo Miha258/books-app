@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
@@ -12,6 +12,7 @@ import { BooksModule } from './books/books.module';
 import { createConnection } from 'mysql2/promise';
 import { BillingsModule } from './billings/billings.module';
 import { PaynamentModule } from './paynament/paynament.module';
+import * as fs from 'node:fs/promises';
 
 
 async function ensureDatabaseExists() {
@@ -65,4 +66,18 @@ async function ensureDatabaseExists() {
     PaynamentModule,
   ]
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  constructor() {}
+
+  async onApplicationBootstrap() {
+    const directoriesToCreate = ['books', 'media', 'pdf', 'voice'];
+    for (const dir of directoriesToCreate) {
+      try {
+        await fs.access(`files/${dir}`);
+      } catch (error) {
+        await fs.mkdir(`files/${dir}`, { recursive: true });
+        console.log(`Created directory: ${dir}`);
+      }
+    }
+  }
+}
