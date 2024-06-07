@@ -17,18 +17,17 @@ export class QuestionsController {
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'voice', maxCount: 1 },
     { name: 'media', maxCount: 1 },
+    
   ], {
     fileFilter: (req, file, cb) => {
-      try {
-        if (file.fieldname === 'media') {
-          return mediaFileFilter(req, file, cb);
-        } else if (file.fieldname === 'voice') {
-          return audioFileFilter(req, file, cb);
-        }
-      } catch(e) {
-        cb(new HttpException(`Invalid file format: ${e}`, HttpStatus.UNSUPPORTED_MEDIA_TYPE), false);
+      if (file.fieldname === 'media') {
+        return mediaFileFilter(req, file, cb);
+      } else if (file.fieldname === 'voice') {
+        return audioFileFilter(req, file, cb);
       }
+      cb(new HttpException('Invalid file format', HttpStatus.UNSUPPORTED_MEDIA_TYPE), false);
     },
+    limits: { fileSize: 100 * 1024 * 1024 }
   }))
   @Post()
   @ApiConsumes('multipart/form-data')
