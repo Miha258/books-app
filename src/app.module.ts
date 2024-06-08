@@ -70,7 +70,7 @@ export class AppModule implements OnApplicationBootstrap {
   constructor() {}
 
   async onApplicationBootstrap() {
-    const directoriesToCreate = ['books', 'media', 'pdf', 'voice'];
+    const directoriesToCreate = ['books', 'media', 'pdf', 'voice', 'avatar'];
     for (const dir of directoriesToCreate) {
       try {
         await fs.access(`files/${dir}`);

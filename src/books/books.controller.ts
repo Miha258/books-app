@@ -6,7 +6,6 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiConsumes, ApiBody
 import { FileInterceptor } from '@nestjs/platform-express';
 import { mediaFileFilter } from 'src/validators';
 import { Response } from 'express';
-import { join } from 'path';
 
 @ApiTags('books')
 @ApiBearerAuth()
@@ -72,11 +71,13 @@ export class BooksController {
     return this.booksService.remove(id);
   }
 
-  @Get('coverImage/:filename')
-  @ApiOperation({ summary: 'Get source book`s cover image' })
-  @ApiResponse({ status: 200, description: 'The book.' })
-  async getBookCoverImage(@Res() res: Response, @Param('filename') filename: string)  {
-    return res.sendFile(join(__dirname, '..', '..', 'files', 'books', filename))
+
+  @Get('file/:type/:filename')
+  @ApiOperation({ summary: 'Get book source file (type must be "pdf" or "books"' })
+  @ApiResponse({ status: 200, description: 'The source file.' })
+  async getBookFile(@Res() res: Response, @Param('type') type: string, @Param('filename') filename: string)  {
+    const file = await this.booksService.getFile(type, filename)
+    return res.sendFile(file)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,6 +85,6 @@ export class BooksController {
   @ApiResponse({ status: 201, description: 'The file' })
   @Post('pdf/:bookId')
   async generatePdf(@Req() req, @Param('bookId') bookId: string) {
-    return await this.booksService.generatePdfForAllQuestions(req.user.userId, bookId)
+    return await this.booksService.generatePdfForAllQuestions(req.user.userId, parseInt(bookId))
   }
 }

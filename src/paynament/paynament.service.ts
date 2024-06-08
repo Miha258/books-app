@@ -17,7 +17,7 @@ export class PaymentService {
     });
   }
 
-  async createCustomer(email: string, name: string): Promise<Stripe.Customer> {
+  async createCustomer(email: string, name: string) {
     const customer = await this.stripe.customers.create({
         email,
         name,
@@ -25,7 +25,7 @@ export class PaymentService {
     const user = await this.usersRepository.findOneBy({ email })
     user.customerId = customer.id
     await this.usersRepository.update(user.id, user)
-    return
+    return customer
   }
 
   async createPaymentIntent(amount: number, currency: string) {

@@ -37,15 +37,20 @@ export class BooksService {
       uploadBuff = file.buffer
       await fs.writeFile(uploadPath, uploadBuff)
     }
-    
-    return this.booksRepository.save(book);
+    const newBook = await this.booksRepository.save(book)
+    delete newBook.user
+    return newBook
   }
 
   async findAllForUser(userId: number) {
-    return this.booksRepository.find({
+    const books = await this.booksRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
     });
+    return books.map(book => {
+      delete book.user
+      return book
+    })
   }
 
   async findOne(id: number) {
@@ -59,8 +64,11 @@ export class BooksService {
     let uploadBuff: any | null
     
     if (file) {
-      if (book.coverImage) {
-        await fs.unlink(join(__dirname, '..', '..', book.coverImage))
+      if (book.coverImage && book.coverImage !== 'undefined') {
+        const oldCoverImagePath = join(__dirname, '..', '..', book.coverImage)
+        if (await fs.access(oldCoverImagePath).then(() => true).catch(() => false)) {
+          await fs.unlink(join(oldCoverImagePath))
+        }
       }
       const mediaFile = file.originalname
       const separatedMediaFilename = mediaFile.split('.')
@@ -78,7 +86,7 @@ export class BooksService {
     await this.booksRepository.delete(id);
   }
 
-  async generatePdfForAllQuestions(userId: number, bookId: string): Promise<string> {
+  async generatePdfForAllQuestions(userId: number, bookId: number) {
     const questions = await this.questionsRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -92,7 +100,7 @@ export class BooksService {
     const pdfPath = join(__dirname, '..', '..', 'files', 'pdf', `questions_${uuidv4()}.pdf`);
     const pdfStream = fsSync.createWriteStream(pdfPath);
     doc.pipe(pdfStream);
-    const book = await this.booksRepository.findOneBy({ id: parseInt(bookId) });
+    const book = await this.booksRepository.findOneBy({ id: bookId });
     if (book) {
       if (book.coverImage && book.coverImage !== 'undefinded') {
         const coverImagePath = join(__dirname, '..', '..', book.coverImage)
@@ -142,16 +150,27 @@ export class BooksService {
           }
           doc.text(question.answer, doc.x, doc.y + offset / 1.3, { align: 'left' }).moveDown();
           offset = 0
+          await this.booksRepository.delete(question.id)
         }
       }
       doc.end();
-      return new Promise((resolve, reject) => {
-        pdfStream.on('finish', () => {
-          resolve(pdfPath);
-        });
-        pdfStream.on('error', reject);
-    });
+      book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
+      await this.booksRepository.update(bookId, book)
+      return await this.booksRepository.findOneBy({ id: bookId })
   } else {
     throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
   }}
+
+  async getFile(type: string, filename: string) {
+    if (!['pdf', 'books'].includes(type)) {
+      throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
+    }
+
+    const filePath = join(__dirname, '..', '..', 'files', type, filename) 
+    const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
+    if (!fileExists) {
+      throw new HttpException("File not found", HttpStatus.NOT_FOUND)
+    }
+    return filePath
+  }
 }

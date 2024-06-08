@@ -78,15 +78,11 @@ export class User {
 
   @ApiProperty({ description: 'The country code of the shipping address' })
   @Column({ nullable: true })
-  country_code: string;
+  countryCode: string;
 
   @ApiProperty({ description: 'The name of the recipient' })
   @Column({ nullable: true })
   name: string;
-
-  @ApiProperty({ description: 'The phone number of the recipient' })
-  @Column({ nullable: true })
-  phone_number: string;
 
   @ApiProperty({ description: 'The postcode of the shipping address' })
   @Column({ nullable: true })
@@ -94,7 +90,7 @@ export class User {
 
   @ApiProperty({ description: 'The state code of the shipping address', nullable: true })
   @Column({ nullable: true })
-  state_code: string;
+  stateCode: string;
 
   @ApiProperty({ description: 'The first line of the street address' })
   @Column({ nullable: true })

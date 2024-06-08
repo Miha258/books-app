@@ -111,9 +111,6 @@ export class QuestionsService {
       }
   
       if (files.voice) {
-        if (question.voice) {
-          await fs.unlink(join(__dirname, '..', '..', question.voice))
-        }
         const voiceFile = files.voice[0].originalname
         const separatedVoiceFilename = voiceFile.split('.')
         updateData.voice = 'files/voice/' + uuidv4() + "." + separatedVoiceFilename[separatedVoiceFilename.length - 1]
@@ -121,7 +118,6 @@ export class QuestionsService {
         uploadBuff = files.voice[0].buffer
       }
   
-      console.log(uploadPath)
       if (uploadPath) {
         console.log('writed')
         await fs.writeFile(uploadPath, uploadBuff)
@@ -141,10 +137,8 @@ export class QuestionsService {
       throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
     }
 
-    const filePath = join(__dirname, '..', '..', 'files', type, filename)
-    console.log(filePath)
+    const filePath = join(__dirname, '..', '..', 'files', type, filename) 
     const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
-    console.log(filePath)
     if (!fileExists) {
       throw new HttpException("File not found", HttpStatus.NOT_FOUND)
     }

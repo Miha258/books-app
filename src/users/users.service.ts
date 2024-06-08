@@ -6,6 +6,9 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { RegisterDto } from './dto/register.dto';
+import { join } from 'node:path';
+import * as fs from 'node:fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 
 
 @Injectable()
@@ -44,7 +47,7 @@ export class UsersService {
     return out;
   }
 
-  async updateProfile(id: number, userData: Partial<User>, isAdmin = false): Promise<User> {
+  async updateProfile(id: number, userData: Partial<User>, file?: Express.Multer.File, isAdmin = false): Promise<User> {
     await this.isExist(id)
     
     delete userData.password
@@ -58,7 +61,28 @@ export class UsersService {
       }  
     }
 
-    await this.usersRepository.update(id, userData);
+    if (file) {
+      if (userData.profilePicture && userData.profilePicture !== 'undefined') {
+        const oldMediaPath = join(__dirname, '..', '..', userData.profilePicture)
+        if (await fs.access(oldMediaPath).then(() => true).catch(() => false)) {
+          await fs.unlink(oldMediaPath)
+        }
+      }
+
+      const avatarFile = file.originalname
+      const separatedAvatarFilename = avatarFile.split('.')
+      userData.profilePicture = 'files/avatar/' + uuidv4() + "." + separatedAvatarFilename.pop()
+      const uploadPath = join(__dirname, '..', '..', userData.profilePicture)
+      const uploadBuff = file.buffer
+      await fs.writeFile(uploadPath, uploadBuff)
+    }
+
+    try {
+      await this.usersRepository.update(id, userData);
+    } catch (e) {
+      throw new HttpException(e.driverError.sqlMessage, HttpStatus.BAD_REQUEST)
+    }
+    
     return await this.usersRepository.findOneBy({ id });
   }
 
