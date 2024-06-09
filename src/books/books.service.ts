@@ -22,6 +22,13 @@ export class BooksService {
     private usersRepository: Repository<User>
   ) {}
 
+
+  async isExists(id: number) {
+    if (!this.booksRepository.existsBy({ id })) {
+      throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
+    }
+  }
+
   async create(book: Book, userId: number, file?: Express.Multer.File) {
     const user = await this.usersRepository.findOneBy({ id: userId })
     book.user = user
@@ -58,6 +65,7 @@ export class BooksService {
   }
 
   async update(id: number, updateData: Partial<Book>, file?: Express.Multer.File) {
+    await this.isExists(id)
     const book = await this.findOne(id)
     
     let uploadPath: string | null
@@ -83,10 +91,12 @@ export class BooksService {
   }
 
   async remove(id: number) {
+    await this.isExists(id)
     await this.booksRepository.delete(id);
   }
 
   async generatePdfForAllQuestions(userId: number, bookId: number) {
+    await this.isExists(bookId)
     const questions = await this.questionsRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -101,65 +111,63 @@ export class BooksService {
     const pdfStream = fsSync.createWriteStream(pdfPath);
     doc.pipe(pdfStream);
     const book = await this.booksRepository.findOneBy({ id: bookId });
-    if (book) {
-      if (book.coverImage && book.coverImage !== 'undefinded') {
-        const coverImagePath = join(__dirname, '..', '..', book.coverImage)
-        const coverImageExists = await fs.access(coverImagePath).then(() => true).catch(() => false);
-        if (coverImageExists) {
-          doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
-          doc.addPage()
-        }
-      }
-
-      if (book.title && book.subtitle) {
-        doc.fontSize(30)
-        doc.text(book.subtitle, doc.x, doc.y + 100, { align: 'center' }).moveDown();
-        doc.fontSize(20)
-        doc.text(book.title, { align: 'center' }).moveDown();
-        doc.fontSize(10)
+    
+    if (book.coverImage && book.coverImage !== 'undefinded') {
+      const coverImagePath = join(__dirname, '..', '..', book.coverImage)
+      const coverImageExists = await fs.access(coverImagePath).then(() => true).catch(() => false);
+      if (coverImageExists) {
+        doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
         doc.addPage()
       }
+    }
+
+    if (book.title && book.subtitle) {
+      doc.fontSize(30)
+      doc.text(book.subtitle, doc.x, doc.y + 100, { align: 'center' }).moveDown();
+      doc.fontSize(20)
+      doc.text(book.title, { align: 'center' }).moveDown();
+      doc.fontSize(10)
+      doc.addPage()
+    }
 
 
-      let offset = 0
-      let counter = 0
-      for (const question of questions) {
-        if (question.answer) {
-          if (question.media && question.media !== 'undefinded') {
-            counter += 1
-            try {
-              const mediaPath = join(__dirname, '..', '..', question.media);
-              const mediaExists = await fs.access(mediaPath).then(() => true).catch(() => false);
-              if (mediaExists) {
-                const pageWidth = doc.page.width;
-                const pageHeight = doc.page.height;
-                /* @ts-ignore */
-                const imgProps = doc.openImage(mediaPath);
-                const imgWidth = imgProps.width;
-                const imgHeight = imgProps.height;
-                const ratio = imgWidth / imgHeight;
-                const newWidth = pageWidth - 2 * doc.page.margins.left;
-                const newHeight = newWidth / ratio;
-                const y = (pageHeight - newHeight);
-                doc.image(mediaPath, doc.x, doc.y, { width: newWidth, height: newHeight }).moveDown();
-                offset += y
-              }
-            } catch (error) {
-              console.error(`Failed to load media file for question ${question.id}: ${error.message}`);
+    let offset = 0
+    let counter = 0
+    for (const question of questions) {
+      if (question.answer) {
+        if (question.media && question.media !== 'undefinded') {
+          counter += 1
+          try {
+            const mediaPath = join(__dirname, '..', '..', question.media);
+            const mediaExists = await fs.access(mediaPath).then(() => true).catch(() => false);
+            if (mediaExists) {
+              const pageWidth = doc.page.width;
+              const pageHeight = doc.page.height;
+              /* @ts-ignore */
+              const imgProps = doc.openImage(mediaPath);
+              const imgWidth = imgProps.width;
+              const imgHeight = imgProps.height;
+              const ratio = imgWidth / imgHeight;
+              const newWidth = pageWidth - 2 * doc.page.margins.left;
+              const newHeight = newWidth / ratio;
+              const y = (pageHeight - newHeight);
+              doc.image(mediaPath, doc.x, doc.y, { width: newWidth, height: newHeight }).moveDown();
+              offset += y
             }
+          } catch (error) {
+            console.error(`Failed to load media file for question ${question.id}: ${error.message}`);
           }
-          doc.text(question.answer, doc.x, doc.y + offset / 1.3, { align: 'left' }).moveDown();
-          offset = 0
-          await this.booksRepository.delete(question.id)
         }
+        doc.text(question.answer, doc.x, doc.y + offset / 1.3, { align: 'left' }).moveDown();
+        offset = 0
+        await this.booksRepository.delete(question.id)
       }
-      doc.end();
-      book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
-      await this.booksRepository.update(bookId, book)
-      return await this.booksRepository.findOneBy({ id: bookId })
-  } else {
-    throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
-  }}
+    }
+    doc.end();
+    book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
+    await this.booksRepository.update(bookId, book)
+    return await this.booksRepository.findOneBy({ id: bookId })
+  }
 
   async getFile(type: string, filename: string) {
     if (!['pdf', 'books'].includes(type)) {
