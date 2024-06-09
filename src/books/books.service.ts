@@ -166,7 +166,7 @@ export class BooksService {
     doc.end();
     book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
     await this.booksRepository.update(bookId, book)
-    return await this.booksRepository.findOneBy({ id: bookId })
+    return { file: pdfPath }
   }
 
   async getFile(type: string, filename: string) {
