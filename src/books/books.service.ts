@@ -163,7 +163,7 @@ export class BooksService {
         await this.booksRepository.delete(question.id)
       }
     }
-    doc.end();
+    doc.end()
     book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
     await this.booksRepository.update(bookId, book)
     return { file: pdfPath }
