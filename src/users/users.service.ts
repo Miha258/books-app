@@ -172,6 +172,10 @@ export class UsersService {
       return { message: "Password changed successfully" };
   }
 
+  async delete(id: number) { 
+    return this.usersRepository.delete(id)
+  }
+
   async createAdminUser() { 
     const adminExists = await this.findOne(process.env.ADMIN_EMAIL)
     if (!adminExists) {

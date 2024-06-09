@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Put, UseGuards, Param, Patch, Get, Req, UploadedFile, Res, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Body, Put, UseGuards, Param, Patch, Get, Req, UploadedFile, Res, UseInterceptors, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -128,6 +128,22 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'The avatar' })
   async getAvatar(@Res() res: Response, @Param('filename') filename: string)  {
     return res.sendFile(join(__dirname, '..', '..', 'files', 'avatar', filename))
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  @ApiOperation({ summary: 'Delete account' })
+  @ApiResponse({ status: 200})
+  async delete(@Res() req)  {
+    return this.usersService.delete(req.user.userId)
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete account from admin' })
+  @ApiResponse({ status: 200})
+  async adminDelete(@Param('id') userId: string)  {
+    return this.usersService.delete(parseInt(userId))
   }
 }
 
