@@ -59,7 +59,7 @@ export class BooksController {
   @Put(':id')
   @ApiOperation({ summary: 'Update a book by ID' })
   @ApiResponse({ status: 200, description: 'The book has been successfully updated.' })
-  async update(@Param('id') id: number, @Body() book: Partial<Book>): Promise<Book> {
+  async update(@Param('id') id: number, @Body() book: Book): Promise<Book> {
     return this.booksService.update(id, book);
   }
 

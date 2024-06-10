@@ -121,13 +121,13 @@ export class BooksService {
     }
 
     if (book.title && book.subtitle) {
-      doc.fontSize(30)
+      doc.fontSize(45)
       const white: PDFKit.Mixins.ColorValue = [255, 255, 255]
       const black: PDFKit.Mixins.ColorValue = [0, 0, 0]
       doc.fillColor(white, 1)
-      doc.text(book.subtitle, doc.x, doc.y + 100, { align: 'center', fill: true}).moveDown();
-      doc.fontSize(20)
-      doc.text(book.title, { align: 'center', fill: true}).moveDown();
+      doc.text(book.subtitle, doc.x, doc.y + 420, { align: 'center', fill: true}).moveDown();
+      doc.fontSize(30)
+      doc.text(book.title, doc.x, doc.y - 50, { align: 'center', fill: true}).moveDown();
       doc.fontSize(10)
       doc.fillColor(black, 1)
       doc.addPage()
