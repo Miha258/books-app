@@ -166,6 +166,6 @@ export class BooksService {
     doc.end()
     book.pdf = 'files/pdf/' + pdfPath.split('/').pop()
     await this.booksRepository.update(bookId, book)
-    return { file: pdfPath }
+    return { file: book.pdf }
   }
 }
