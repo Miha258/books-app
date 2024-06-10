@@ -117,16 +117,19 @@ export class BooksService {
       const coverImageExists = await fs.access(coverImagePath).then(() => true).catch(() => false);
       if (coverImageExists) {
         doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
-        doc.addPage()
       }
     }
 
     if (book.title && book.subtitle) {
       doc.fontSize(30)
-      doc.text(book.subtitle, doc.x, doc.y + 100, { align: 'center' }).moveDown();
+      const white: PDFKit.Mixins.ColorValue = [255, 255, 255]
+      const black: PDFKit.Mixins.ColorValue = [0, 0, 0]
+      doc.fillColor(white, 1)
+      doc.text(book.subtitle, doc.x, doc.y + 100, { align: 'center', fill: true}).moveDown();
       doc.fontSize(20)
-      doc.text(book.title, { align: 'center' }).moveDown();
+      doc.text(book.title, { align: 'center', fill: true}).moveDown();
       doc.fontSize(10)
+      doc.fillColor(black, 1)
       doc.addPage()
     }
 
