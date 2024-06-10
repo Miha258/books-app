@@ -168,17 +168,4 @@ export class BooksService {
     await this.booksRepository.update(bookId, book)
     return { file: pdfPath }
   }
-
-  async getFile(type: string, filename: string) {
-    if (!['pdf', 'books'].includes(type)) {
-      throw new HttpException("Invalid file type", HttpStatus.BAD_REQUEST)
-    }
-
-    const filePath = join(__dirname, '..', '..', 'files', type, filename) 
-    const fileExists = await fs.access(filePath).then(() => true).catch(() => false)
-    if (!fileExists) {
-      throw new HttpException("File not found", HttpStatus.NOT_FOUND)
-    }
-    return filePath
-  }
 }

@@ -71,15 +71,6 @@ export class BooksController {
     return this.booksService.remove(id);
   }
 
-
-  @Get('file/:type/:filename')
-  @ApiOperation({ summary: 'Get book source file (type must be "pdf" or "books"' })
-  @ApiResponse({ status: 200, description: 'The source file.' })
-  async getBookFile(@Res() res: Response, @Param('type') type: string, @Param('filename') filename: string)  {
-    const file = await this.booksService.getFile(type, filename)
-    return res.sendFile(file)
-  }
-
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Generate pdf file' })
   @ApiResponse({ status: 201, description: 'The file' })

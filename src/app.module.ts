@@ -13,7 +13,7 @@ import { createConnection } from 'mysql2/promise';
 import { BillingsModule } from './billings/billings.module';
 import { PaynamentModule } from './paynament/paynament.module';
 import * as fs from 'node:fs/promises';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 async function ensureDatabaseExists() {
   const connection = await createConnection({
@@ -54,7 +54,12 @@ async function ensureDatabaseExists() {
           user: process.env.EMAIL_USERNAME,
           pass: process.env.EMAIL_PASSWORD,
         }
-      }
+      } 
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'files'),
+      serveRoot: '/files',
+      exclude: ['/api/(.*)'],
     }),
     ScheduleModule.forRoot(),
     JwtGlobalModule,

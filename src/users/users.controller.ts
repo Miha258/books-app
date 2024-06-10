@@ -122,13 +122,6 @@ export class UsersController {
   async resetPassword(@Param() { token }: { token: string }, @Body() { newPassword }: ResetPasswordDto) {
     return await this.usersService.resetPassword(token, newPassword);
   }
-  
-  @Get('avatar/:filename')
-  @ApiOperation({ summary: 'Get source avatar image' })
-  @ApiResponse({ status: 200, description: 'The avatar' })
-  async getAvatar(@Res() res: Response, @Param('filename') filename: string)  {
-    return res.sendFile(join(__dirname, '..', '..', 'files', 'avatar', filename))
-  }
 
   @UseGuards(JwtAuthGuard)
   @Delete('me')
