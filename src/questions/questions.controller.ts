@@ -122,4 +122,12 @@ export class QuestionsController {
   async getAnswers(@Req() req) {
     return { count: await this.questionsService.getCount(req.user.userId) }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('remove/all')
+  @ApiOperation({ summary: 'Delete all questions' })
+  @ApiResponse({ status: 200, description: 'Questions count.' })
+  async removeAll(@Req() req) {
+    return this.questionsService.removeAll(req.user.userId)
+  }
 }

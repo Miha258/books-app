@@ -50,8 +50,8 @@ export class QuestionsService {
         }
 
         if (files.voice) {
-            const voiceFile = '.wav'
-            const separatedVoiceFilename = voiceFile.split('.')
+            const voiceFile = files.media[0].originalname
+            const separatedVoiceFilename = voiceFile.split('.');
             question.voice = 'files/voice/' + uuidv4() + '.' + separatedVoiceFilename.pop()
             const voiceUploadPath = join(__dirname, '..', '..', question.voice)
             const voiceUploadBuff = files.voice[0].buffer
@@ -111,7 +111,7 @@ export class QuestionsService {
       }
   
       if (files.voice) {
-        const voiceFile = '.wav'
+        const voiceFile = files.voice[0].originalname
         const separatedVoiceFilename = voiceFile.split('.')
         updateData.voice = 'files/voice/' + uuidv4() + "." + separatedVoiceFilename[separatedVoiceFilename.length - 1]
         uploadPath = join(__dirname, '..', '..', updateData.voice)
@@ -119,7 +119,6 @@ export class QuestionsService {
       }
   
       if (uploadPath) {
-        console.log('writed')
         await fs.writeFile(uploadPath, uploadBuff)
       }
     }
@@ -132,16 +131,24 @@ export class QuestionsService {
     await this.questionsRepository.delete(id);
   }
 
+  async removeAll(id: number) {
+    const questions = await this.questionsRepository.find({
+      where: { user: { id } },
+      relations: ['user'],
+    })
+    await this.questionsRepository.remove(questions)
+  }
+
   async getCount(userId: number) {
     const questions = await this.questionsRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
     })
-    return questions.reduce((prev, cur) => {
+    return questions.reduce((acc, cur) => {
       if (cur.answer) {
-        return prev += 1
+        return acc += 1
       }
-      return 0
+      return acc
     }, 0)
   }
 }

@@ -24,7 +24,6 @@ export class BooksService {
 
 
   async isExists(id: number) {
-    console.log(!await this.booksRepository.existsBy({ id }))
     if (!await this.booksRepository.existsBy({ id })) {
       throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
     }
@@ -112,12 +111,6 @@ export class BooksService {
     const pdfStream = fsSync.createWriteStream(pdfPath);
     doc.pipe(pdfStream);
     const book = await this.booksRepository.findOneBy({ id: bookId });
-    
-
-    if (!book) {
-      throw new HttpException('Book with this id doesn`t exists', HttpStatus.NOT_FOUND)
-    }
-
 
     if (book.coverImage && book.coverImage !== 'undefinded') {
       const coverImagePath = join(__dirname, '..', '..', book.coverImage)
@@ -126,8 +119,7 @@ export class BooksService {
         doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
       }
     }
-    
-
+  
     if (book.title && book.subtitle) {
       doc.fontSize(45)
       const white: PDFKit.Mixins.ColorValue = [255, 255, 255]
@@ -171,7 +163,7 @@ export class BooksService {
         }
         doc.text(question.answer, doc.x, doc.y + offset / 1.3, { align: 'left' }).moveDown();
         offset = 0
-        await this.booksRepository.delete(question.id)
+        await this.questionsRepository.remove(question)
       }
     }
     doc.end()
