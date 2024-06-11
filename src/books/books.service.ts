@@ -24,6 +24,7 @@ export class BooksService {
 
 
   async isExists(id: number) {
+    console.log(!this.booksRepository.existsBy({ id }))
     if (!this.booksRepository.existsBy({ id })) {
       throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
     }
@@ -32,7 +33,7 @@ export class BooksService {
   async create(book: Book, userId: number, file?: Express.Multer.File) {
     const user = await this.usersRepository.findOneBy({ id: userId })
     book.user = user
-
+    
     let uploadPath: string | null
     let uploadBuff: any | null
     
@@ -112,6 +113,12 @@ export class BooksService {
     doc.pipe(pdfStream);
     const book = await this.booksRepository.findOneBy({ id: bookId });
     
+
+    if (!book) {
+      throw new HttpException('Book with this id doesn`t exists', HttpStatus.NOT_FOUND)
+    }
+
+
     if (book.coverImage && book.coverImage !== 'undefinded') {
       const coverImagePath = join(__dirname, '..', '..', book.coverImage)
       const coverImageExists = await fs.access(coverImagePath).then(() => true).catch(() => false);
@@ -119,6 +126,7 @@ export class BooksService {
         doc.image(coverImagePath, doc.x + 70, doc.y, { width: 350, height: 600, align: 'center' }).moveDown();
       }
     }
+    
 
     if (book.title && book.subtitle) {
       doc.fontSize(45)

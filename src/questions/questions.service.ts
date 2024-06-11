@@ -41,21 +41,21 @@ export class QuestionsService {
 
     if (files) {
         if (files.media) {
-            const mediaFile = files.media[0].originalname;
-            const separatedMediaFilename = mediaFile.split('.');
-            question.media = 'files/media/' + uuidv4() + '.' + separatedMediaFilename.pop();
-            const mediaUploadPath = join(__dirname, '..', '..', question.media);
-            const mediaUploadBuff = files.media[0].buffer;
-            await fs.writeFile(mediaUploadPath, mediaUploadBuff);
+            const mediaFile = files.media[0].originalname
+            const separatedMediaFilename = mediaFile.split('.')
+            question.media = 'files/media/' + uuidv4() + '.' + separatedMediaFilename.pop()
+            const mediaUploadPath = join(__dirname, '..', '..', question.media)
+            const mediaUploadBuff = files.media[0].buffer
+            await fs.writeFile(mediaUploadPath, mediaUploadBuff)
         }
 
         if (files.voice) {
-            const voiceFile = files.voice[0].originalname;
-            const separatedVoiceFilename = voiceFile.split('.');
-            question.voice = 'files/voice/' + uuidv4() + '.' + separatedVoiceFilename.pop();
-            const voiceUploadPath = join(__dirname, '..', '..', question.voice);
-            const voiceUploadBuff = files.voice[0].buffer;
-            await fs.writeFile(voiceUploadPath, voiceUploadBuff);
+            const voiceFile = '.wav'
+            const separatedVoiceFilename = voiceFile.split('.')
+            question.voice = 'files/voice/' + uuidv4() + '.' + separatedVoiceFilename.pop()
+            const voiceUploadPath = join(__dirname, '..', '..', question.voice)
+            const voiceUploadBuff = files.voice[0].buffer
+            await fs.writeFile(voiceUploadPath, voiceUploadBuff)
         }
     }
 
@@ -87,7 +87,7 @@ export class QuestionsService {
     const question = await this.findOne(id)
     let uploadPath: string | null
     let uploadBuff: any | null
-
+    
     if (files) {
       if (question.media && question.media !== 'undefined') {
         const oldMediaPath = join(__dirname, '..', '..', question.media)
@@ -111,7 +111,7 @@ export class QuestionsService {
       }
   
       if (files.voice) {
-        const voiceFile = files.voice[0].originalname
+        const voiceFile = '.wav'
         const separatedVoiceFilename = voiceFile.split('.')
         updateData.voice = 'files/voice/' + uuidv4() + "." + separatedVoiceFilename[separatedVoiceFilename.length - 1]
         uploadPath = join(__dirname, '..', '..', updateData.voice)
