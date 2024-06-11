@@ -24,8 +24,8 @@ export class BooksService {
 
 
   async isExists(id: number) {
-    console.log(!this.booksRepository.existsBy({ id }))
-    if (!this.booksRepository.existsBy({ id })) {
+    console.log(!await this.booksRepository.existsBy({ id }))
+    if (!await this.booksRepository.existsBy({ id })) {
       throw new HttpException('Book with this id doesn`t exist', HttpStatus.NOT_FOUND)
     }
   }
@@ -33,7 +33,7 @@ export class BooksService {
   async create(book: Book, userId: number, file?: Express.Multer.File) {
     const user = await this.usersRepository.findOneBy({ id: userId })
     book.user = user
-    
+
     let uploadPath: string | null
     let uploadBuff: any | null
     
